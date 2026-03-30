@@ -374,9 +374,9 @@ function updateHeader(){
 
 function renderQuiz(){
   const area=document.getElementById('quiz-area');
-  if(quizDone){
-    const last=allRecords[allRecords.length-1];
-    area.innerHTML=`<div class="card" style="text-align:center;padding:24px 16px;">
+  //quizDone removed
+    //
+    //
       <div style="font-size:13px;color:var(--text2);margin-bottom:6px;">今日はもう終わったよ！</div>
       <div class="result-score">${last.correct}<span style="font-size:20px;color:var(--text2);font-weight:400;">/ ${last.total}</span></div>
       <div class="result-sub">正答率 ${last.pct}%</div>
@@ -496,8 +496,16 @@ function showResult(area){
         <div class="dots" style="margin-top:8px;">${mkDots('jp')}<span style="font-size:11px;color:var(--text2);margin-left:4px;">${jpPct>=STREAK_PCT?state.jpStreak.length+'/'+STREAK_NEED+'日連続':'連続リセット'}</span></div>
       </div>
     </div>
-    <button class="action-btn primary" onclick="showTab('diag')">診断を見る</button>
+    <button class="action-btn primary" onclick="startNewSet()">もう1セットやる！</button>
+    <button class="action-btn" onclick="showTab('diag')">診断を見る</button>
   `;
+}
+
+function startNewSet(){
+  cur=0;answered=false;sessionResults=[];quizDone=false;
+  questions=getQuestions();
+  window.scrollTo(0,0);
+  renderQuiz();
 }
 
 function renderLevel(){
@@ -604,9 +612,7 @@ function renderHist(){
 }
 
 loadData();
-const today=todayStr();
-if(allRecords.length&&allRecords[allRecords.length-1].date===today){quizDone=true;}
-else questions=getQuestions();
+questions=getQuestions();
 updateHeader();
 renderQuiz();
 </script>
