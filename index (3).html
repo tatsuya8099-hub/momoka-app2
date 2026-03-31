@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ももかの学習">
+<title>ももかの学習アプリ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#2d8a4e;--green-light:#e8f5ee;--green-dark:#1a5c33;
+  --blue:#2563b0;--blue-light:#e8f0fb;
+  --amber:#b45309;--amber-light:#fef3c7;
+  --red:#b91c1c;--red-light:#fee2e2;
+  --gray:#6b7280;--gray-light:#f3f4f6;--gray-bg:#f9fafb;
+  --border:#e5e7eb;--text:#111827;--text2:#6b7280;
+  --radius:12px;--radius-sm:8px;--shadow:0 1px 3px rgba(0,0,0,0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--gray-bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;}
+
+/* Header */
+.header{background:#fff;border-bottom:1px solid var(--border);padding:14px 16px;position:sticky;top:0;z-index:100;}
+.header-title{font-size:17px;font-weight:700;color:var(--green-dark);}
+.header-sub{font-size:11px;color:var(--text2);margin-top:1px;}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;}
+.nav-item{flex:1;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:inherit;}
+.nav-item.active{color:var(--green);}
+.nav-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;}
+.nav-icon svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.nav-label{font-size:10px;font-weight:500;}
+
+/* Main */
+.main{padding:16px 16px 90px;}
+
+/* Sections */
+.sec{display:none;}.sec.active{display:block;}
+
+/* Cards */
+.card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+
+/* Stats grid */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.stat-item{background:#fff;border-radius:var(--radius-sm);border:1px solid var(--border);padding:12px 8px;text-align:center;}
+.stat-num{font-size:22px;font-weight:700;color:var(--text);}
+.stat-label{font-size:10px;color:var(--text2);margin-top:2px;}
+
+/* Progress */
+.pb{height:6px;background:var(--gray-light);border-radius:3px;overflow:hidden;margin-bottom:14px;}
+.pf{height:100%;background:var(--green);border-radius:3px;transition:width 0.4s ease;}
+
+/* Tags */
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.tag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px;}
+.tag-m{background:var(--green-light);color:var(--green-dark);}
+.tag-j{background:var(--blue-light);color:var(--blue);}
+.tag-u{background:var(--gray-light);color:var(--gray);}
+.tag-g{background:var(--amber-light);color:var(--amber);}
+
+/* Question */
+.passage{font-size:13px;color:var(--text2);line-height:1.8;padding:10px 12px;background:var(--gray-bg);border-left:3px solid var(--border);border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:14px;}
+.q-text{font-size:15px;font-weight:500;line-height:1.7;margin-bottom:16px;color:var(--text);}
+.choices{display:flex;flex-direction:column;gap:10px;}
+.choice-btn{width:100%;padding:14px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;text-align:left;font-size:14px;font-family:inherit;color:var(--text);cursor:pointer;transition:all 0.15s;line-height:1.5;}
+.choice-btn:active{transform:scale(0.98);}
+.choice-btn.ok{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+.choice-btn.ng{background:var(--red-light);border-color:var(--red);color:var(--red);}
+.choice-btn.rv{background:var(--green-light);border-color:var(--green);color:var(--green-dark);}
+
+/* Feedback */
+.fb{margin-top:12px;font-size:13px;padding:12px;border-radius:var(--radius-sm);line-height:1.6;}
+.fb.ok{background:var(--green-light);color:var(--green-dark);}
+.fb.ng{background:var(--red-light);color:var(--red);}
+
+/* Next btn */
+.next-btn{margin-top:14px;width:100%;padding:14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;font-size:15px;font-family:inherit;color:var(--text);cursor:pointer;font-weight:500;}
+.next-btn:active{background:var(--gray-light);}
+
+/* Action btns */
+.action-btn{width:100%;padding:14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;font-size:14px;font-family:inherit;color:var(--text);cursor:pointer;margin-top:10px;font-weight:500;}
+.action-btn.primary{border-color:var(--green);background:var(--green-light);color:var(--green-dark);}
+.action-btn:active{opacity:0.8;}
+
+/* Level up */
+.levelup{background:var(--green-light);border:2px solid var(--green);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:14px;}
+.levelup-title{font-size:18px;font-weight:700;color:var(--green-dark);margin-bottom:4px;}
+.levelup-sub{font-size:13px;color:var(--green);}
+
+/* Dots */
+.dots{display:flex;align-items:center;gap:6px;margin-top:8px;}
+.dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.dot.m-on{background:var(--green);border-color:var(--green-dark);color:#fff;}
+.dot.j-on{background:var(--blue);border-color:#1a4a8a;color:#fff;}
+.dot.off{background:var(--gray-light);}
+
+/* Bar */
+.bar-row{margin-bottom:12px;}
+.bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px;}
+.bar-track{height:8px;background:var(--gray-light);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+
+/* Level card */
+.lv-card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:12px;}
+.lv-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.lv-circle{width:52px;height:52px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.lv-circle.m{background:var(--green-light);}
+.lv-circle.j{background:var(--blue-light);}
+.lv-circle-label{font-size:10px;font-weight:700;}
+.lv-circle.m .lv-circle-label{color:var(--green-dark);}
+.lv-circle.j .lv-circle-label{color:var(--blue);}
+.lv-circle-num{font-size:17px;font-weight:700;}
+.lv-circle.m .lv-circle-num{color:var(--green-dark);}
+.lv-circle.j .lv-circle-num{color:var(--blue);}
+.unit-chip{display:inline-block;font-size:11px;padding:3px 9px;border-radius:20px;background:var(--green-light);color:var(--green-dark);margin:2px 3px 2px 0;}
+.unit-chip.j{background:var(--blue-light);color:var(--blue);}
+
+/* History row */
+.hist-row{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);}
+.hist-row:last-child{border-bottom:none;}
+
+/* Diag */
+.diag-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.diag-label{font-size:12px;color:var(--text2);min-width:90px;}
+.diag-bar{flex:1;height:8px;background:var(--gray-light);border-radius:4px;overflow:hidden;}
+.diag-fill{height:100%;border-radius:4px;transition:width 0.5s;}
+.diag-pct{font-size:12px;font-weight:700;min-width:36px;text-align:right;}
+.grade-badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;min-width:28px;text-align:center;}
+.g-s{background:var(--green-light);color:var(--green-dark);}
+.g-a{background:var(--blue-light);color:var(--blue);}
+.g-b{background:var(--amber-light);color:var(--amber);}
+.g-c{background:#fde68a;color:#92400e;}
+.g-d{background:var(--red-light);color:var(--red);}
+
+/* Section title */
+.sec-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;}
+.empty{text-align:center;padding:40px 20px;font-size:13px;color:var(--text2);}
+
+/* Result */
+.result-score{font-size:52px;font-weight:700;color:var(--text);text-align:center;margin:8px 0 4px;}
+.result-sub{font-size:13px;color:var(--text2);text-align:center;margin-bottom:20px;}
+.meta-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.score-badge{font-size:12px;font-weight:500;padding:4px 10px;background:var(--gray-light);border-radius:20px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">ももかの学習アプリ</div>
+  <div class="header-sub" id="header-sub">よみこみちゅう...</div>
+</div>
+
+<div class="main">
+  <div id="sec-quiz" class="sec active">
+    <div id="quiz-area"><div class="empty">よみこみちゅう...</div></div>
+  </div>
+  <div id="sec-level" class="sec"><div id="level-area"></div></div>
+  <div id="sec-diag" class="sec"><div id="diag-area"></div></div>
+  <div id="sec-hist" class="sec"><div id="hist-area"></div></div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-quiz" onclick="showTab('quiz')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <span class="nav-label">今日の問題</span>
+  </button>
+  <button class="nav-item" id="nav-level" onclick="showTab('level')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+    <span class="nav-label">レベル</span>
+  </button>
+  <button class="nav-item" id="nav-diag" onclick="showTab('diag')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+    <span class="nav-label">診断</span>
+  </button>
+  <button class="nav-item" id="nav-hist" onclick="showTab('hist')">
+    <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+    <span class="nav-label">記録</span>
+  </button>
+</nav>
+
+<script>
+const LEVELS={
+  math:{
+    131:{label:'わり算・文章題基礎',units:['わり算（あまりなし）','等分・包含除'],desc:'わり算の基本と簡単な文章題',grade:2},
+    132:{label:'わり算・文章題応用',units:['わり算（あまりあり）','2ステップ文章題'],desc:'あまりのあるわり算・2ステップ',grade:2},
+    133:{label:'かけ算・わり算の混合',units:['四則混合','文章題'],desc:'かけ算とわり算を組み合わせた問題',grade:2},
+    134:{label:'大きい数・時刻',units:['大きい数','時刻と時間'],desc:'100〜1000の計算、時刻の計算',grade:2},
+    135:{label:'長さ・かさ',units:['長さ','かさ'],desc:'cm・mm・m、L・dLの計算',grade:2},
+    151:{label:'差集め算・和差算',units:['差集め算','和差算'],desc:'差と和から2つの数を求める',grade:3},
+    152:{label:'図形①',units:['長方形・正方形','面積・周長'],desc:'長方形・正方形の面積と周の長さ',grade:3},
+    153:{label:'植木算・規則性',units:['植木算','数列'],desc:'等間隔の本数、数の並びのきまり',grade:3},
+    154:{label:'鶴亀算①',units:['鶴亀算'],desc:'2種類の合計から個数を求める',grade:3},
+    155:{label:'旅人算①',units:['旅人算','出会い算'],desc:'出会い・追いかけの速さ問題',grade:3}
+  },
+  jp:{
+    131:{label:'語彙・文の構造',units:['語彙','主語・述語'],desc:'ことばの意味、文の組み立て',grade:2},
+    132:{label:'短文読解・事実把握',units:['事実読取り','時間・順序'],desc:'短い文章から事実を読み取る',grade:2},
+    133:{label:'気持ち読解',units:['心情読解','理由説明'],desc:'登場人物の気持ちと理由を読む',grade:2},
+    134:{label:'説明文の読解',units:['説明文','段落'],desc:'説明文の構成を理解する',grade:2},
+    135:{label:'物語文・接続語',units:['物語文','接続語'],desc:'物語の流れと接続語を理解する',grade:2}
+  }
+};
+
+const QS={
+  math:{
+    131:[
+      {unit:'わり算（あまりなし）',q:'56このあめを7人で同じ数ずつわけます。1人何こになりますか？',choices:['6こ','7こ','8こ','9こ'],ans:2,exp:'56÷7＝8こ'},
+      {unit:'わり算（あまりなし）',q:'72枚の色紙を8人で同じ数ずつわけます。1人何枚になりますか？',choices:['7枚','8枚','9枚','10枚'],ans:2,exp:'72÷8＝9枚'},
+      {unit:'等分・包含除',q:'30このみかんを6このふくろに同じ数ずつ入れます。1ふくろ何こですか？',choices:['4こ','5こ','6こ','7こ'],ans:1,exp:'30÷6＝5こ'},
+      {unit:'等分・包含除',q:'45Lの水を9つのバケツに同じ量ずつ入れます。1つ何Lですか？',choices:['4L','5L','6L','7L'],ans:1,exp:'45÷9＝5L'},
+      {unit:'わり算（あまりなし）',q:'63このチョコレートを9人でわけます。1人何こになりますか？',choices:['6こ','7こ','8こ','9こ'],ans:1,exp:'63÷9＝7こ'},
+      {unit:'文章題',q:'クッキーが48まいあります。1ふくろに6まいずつ入れると何ふくろできますか？',choices:['6ふくろ','7ふくろ','8ふくろ','9ふくろ'],ans:2,exp:'48÷6＝8ふくろ'},
+      {unit:'文章題',q:'36本のえんぴつを4人でわけます。1人何本になりますか？',choices:['7本','8本','9本','10本'],ans:2,exp:'36÷4＝9本'},
+      {unit:'等分・包含除',q:'24Lのジュースを3Lずつびんに入れます。びんは何本いりますか？',choices:['6本','7本','8本','9本'],ans:2,exp:'24÷3＝8本'},
+      {unit:'文章題',q:'40このりんごを5このかごに同じ数ずつ入れます。1かご何こですか？',choices:['6こ','7こ','8こ','9こ'],ans:2,exp:'40÷5＝8こ'},
+      {unit:'わり算（あまりなし）',q:'54このたまごを6つのパックに同じ数ずつ入れます。1パック何こですか？',choices:['7こ','8こ','9こ','10こ'],ans:2,exp:'54÷6＝9こ'}
+    ],
+    132:[
+      {unit:'わり算（あまりあり）',q:'25このあめを4人でわけます。1人何こもらえて、何こあまりますか？',choices:['5こ あまり5','6こ あまり1','6こ あまり3','7こ あまり1'],ans:1,exp:'25÷4＝6あまり1'},
+      {unit:'わり算（あまりあり）',q:'23このみかんを5人でわけます。あまりは何こですか？',choices:['2こ','3こ','4こ','5こ'],ans:1,exp:'23÷5＝4あまり3'},
+      {unit:'2ステップ文章題',q:'シールが1シート12まいで、4シートあります。8人でわけると1人何まいですか？',choices:['5まい','6まい','7まい','8まい'],ans:1,exp:'12×4＝48まい、48÷8＝6まい'},
+      {unit:'わり算（あまりあり）',q:'38人を5人ずつのグループにわけます。グループはいくつできて、何人あまりますか？',choices:['7グループ あまり2人','7グループ あまり3人','8グループ あまり1人','8グループ あまり2人'],ans:1,exp:'38÷5＝7あまり3'},
+      {unit:'2ステップ文章題',q:'えんぴつが1はこ8本で3はこあります。4人でわけると1人何本ですか？',choices:['5本','6本','7本','8本'],ans:1,exp:'8×3＝24本、24÷4＝6本'},
+      {unit:'わり算（あまりあり）',q:'50このたまごを7こずつパックに入れます。パックは何こできて、何こあまりますか？',choices:['7こ あまり1','7こ あまり2','7こ あまり3','8こ あまり0'],ans:0,exp:'50÷7＝7あまり1'},
+      {unit:'2ステップ文章題',q:'本が1段に7さつで4段あります。6人でわけると1人何さつですか？',choices:['4さつ','5さつ','6さつ','7さつ'],ans:0,exp:'7×4＝28さつ、28÷6＝4あまり4　1人4さつ'},
+      {unit:'わり算（あまりあり）',q:'29このチョコを6人でわけます。あまりは何こですか？',choices:['3こ','4こ','5こ','6こ'],ans:2,exp:'29÷6＝4あまり5'},
+      {unit:'2ステップ文章題',q:'カードが1ふくろ9まいで5ふくろあります。6人でわけると1人何まいですか？',choices:['6まい','7まい','8まい','9まい'],ans:1,exp:'9×5＝45まい、45÷6＝7あまり3　1人7まい'},
+      {unit:'わり算（あまりあり）',q:'17このお菓子を3人でわけます。あまりは何こですか？',choices:['0こ','1こ','2こ','3こ'],ans:2,exp:'17÷3＝5あまり2'}
+    ],
+    133:[
+      {unit:'四則混合',q:'りんごが3ふくろあって、1ふくろに6こ入っています。4こ食べると残りは何こですか？',choices:['12こ','14こ','16こ','18こ'],ans:1,exp:'3×6＝18こ、18－4＝14こ'},
+      {unit:'文章題',q:'1本15円のえんぴつを4本と、1まい20円の紙を3まい買いました。ぜんぶでいくらですか？',choices:['100円','110円','120円','130円'],ans:2,exp:'15×4＝60円、20×3＝60円、60＋60＝120円'},
+      {unit:'四則混合',q:'箱に48このボールが入っています。6人で同じ数ずつとり、さらに5こずつもらいました。1人何こになりましたか？',choices:['11こ','12こ','13こ','14こ'],ans:2,exp:'48÷6＝8こ、8＋5＝13こ'},
+      {unit:'文章題',q:'1さつ130円のノートを4さつと、1本50円のペンを2本買いました。合計いくらですか？',choices:['580円','600円','620円','640円'],ans:2,exp:'130×4＝520円、50×2＝100円、520＋100＝620円'},
+      {unit:'四則混合',q:'36このあめを9人でわけ、さらに1人に3こずつ足しました。1人何こになりましたか？',choices:['6こ','7こ','8こ','9こ'],ans:1,exp:'36÷9＝4こ、4＋3＝7こ'},
+      {unit:'文章題',q:'子どもが6人いて、それぞれに8こずつみかんをくばります。みかんは全部で何こいりますか？',choices:['42こ','46こ','48こ','54こ'],ans:2,exp:'6×8＝48こ'},
+      {unit:'四則混合',q:'本が5だなあって、1だなに8さつずつあります。12さつ貸し出すと残りは何さつですか？',choices:['26さつ','27さつ','28さつ','29さつ'],ans:2,exp:'5×8＝40さつ、40－12＝28さつ'},
+      {unit:'文章題',q:'75円のガムを3こと、45円のキャンディを4こ買いました。合計いくらですか？',choices:['385円','395円','400円','405円'],ans:3,exp:'75×3＝225円、45×4＝180円、225＋180＝405円'},
+      {unit:'四則混合',q:'1パック6このたまごが4パックあります。3こ使うと残りは何こですか？',choices:['19こ','20こ','21こ','22こ'],ans:2,exp:'6×4＝24こ、24－3＝21こ'},
+      {unit:'文章題',q:'バスに28人乗っています。次の停留所で9人降りて6人乗りました。今何人いますか？',choices:['23人','24人','25人','26人'],ans:2,exp:'28－9＝19人、19＋6＝25人'}
+    ],
+    134:[
+      {unit:'大きい数',q:'100を7こ、10を4こ、1を8こ合わせた数はいくつですか？',choices:['748','758','768','778'],ans:0,exp:'700＋40＋8＝748'},
+      {unit:'大きい数',q:'562より100大きい数はいくつですか？',choices:['562','652','662','672'],ans:2,exp:'562＋100＝662'},
+      {unit:'時刻と時間',q:'午前10時30分から1時間45分後は何時何分ですか？',choices:['午後0時05分','午後0時10分','午後0時15分','午後0時20分'],ans:2,exp:'10時30分＋1時間45分＝12時15分'},
+      {unit:'時刻と時間',q:'午後2時15分から午後3時50分まで何時間何分ですか？',choices:['1時間25分','1時間30分','1時間35分','1時間40分'],ans:2,exp:'3時50分－2時15分＝1時間35分'},
+      {unit:'大きい数',q:'1000より1小さい数はいくつですか？',choices:['989','990','998','999'],ans:3,exp:'1000－1＝999'},
+      {unit:'時刻と時間',passage:'電車が午前9時20分に出発し、1時間10分で目的地に着きます。',q:'目的地に着くのは何時何分ですか？',choices:['午前10時20分','午前10時25分','午前10時30分','午前10時35分'],ans:2,exp:'9時20分＋1時間10分＝10時30分'},
+      {unit:'大きい数',q:'800＋□＝1000　□にはいる数はいくつですか？',choices:['100','150','200','250'],ans:2,exp:'1000－800＝200'},
+      {unit:'時刻と時間',q:'午前7時45分に家を出て、学校まで25分かかります。学校に着くのは何時何分ですか？',choices:['午前8時05分','午前8時10分','午前8時15分','午前8時20分'],ans:1,exp:'7時45分＋25分＝8時10分'},
+      {unit:'大きい数',q:'次の中で一番大きい数はどれですか？',choices:['387','401','398','410'],ans:3,exp:'410が最大'},
+      {unit:'時刻と時間',q:'図書館は午前9時に開いて午後5時に閉まります。開いている時間は何時間ですか？',choices:['6時間','7時間','8時間','9時間'],ans:2,exp:'17時－9時＝8時間'}
+    ],
+    135:[
+      {unit:'長さ',q:'1m20cmは何cmですか？',choices:['12cm','102cm','120cm','1020cm'],ans:2,exp:'1m＝100cm　100＋20＝120cm'},
+      {unit:'長さ',q:'250cmは何m何cmですか？',choices:['2m5cm','2m50cm','25m0cm','25m5cm'],ans:1,exp:'250÷100＝2あまり50　2m50cm'},
+      {unit:'かさ',q:'1L500mLは何mLですか？',choices:['150mL','1050mL','1500mL','15000mL'],ans:2,exp:'1L＝1000mL　1000＋500＝1500mL'},
+      {unit:'長さ',q:'3m40cmと1m80cmを足すと何m何cmですか？',choices:['4m20cm','4m80cm','5m20cm','5m80cm'],ans:2,exp:'340cm＋180cm＝520cm＝5m20cm'},
+      {unit:'かさ',q:'2L300mLから800mLを使いました。残りは何L何mLですか？',choices:['1L400mL','1L500mL','1L600mL','1L700mL'],ans:1,exp:'2300mL－800mL＝1500mL＝1L500mL'},
+      {unit:'長さ',q:'5m70cmから2m30cmをひくと何m何cmですか？',choices:['3m10cm','3m20cm','3m30cm','3m40cm'],ans:3,exp:'570cm－230cm＝340cm＝3m40cm'},
+      {unit:'かさ',q:'3dLは何mLですか？',choices:['3mL','30mL','300mL','3000mL'],ans:2,exp:'1dL＝100mL　3×100＝300mL'},
+      {unit:'かさ',q:'1L800mLのジュースを3人でわけます。1人分は何mLですか？',choices:['550mL','580mL','600mL','620mL'],ans:2,exp:'1800÷3＝600mL'},
+      {unit:'長さ',q:'1kmは何mですか？',choices:['10m','100m','1000m','10000m'],ans:2,exp:'1km＝1000m'},
+      {unit:'長さ',q:'教室のたて8m30cm、よこ6m70cmのまわりの長さは何mですか？',choices:['28m','29m','30m','31m'],ans:2,exp:'(830＋670)×2＝3000cm＝30m'}
+    ]
+  },
+  jp:{
+    131:[
+      {unit:'主語・述語',q:'「犬が走る」の主語はどれですか？',choices:['犬','が','走る','犬が'],ans:0,exp:'「何が（は）」にあたる部分が主語。「犬」が主語'},
+      {unit:'語彙',q:'「うれしい」のはんたいのことばはどれですか？',choices:['かなしい','たのしい','やさしい','あかるい'],ans:0,exp:'うれしい⇔かなしい'},
+      {unit:'主語・述語',q:'「花がきれいにさいた」の述語はどれですか？',choices:['花が','きれいに','さいた','花'],ans:2,exp:'「どうした」にあたる部分が述語。「さいた」'},
+      {unit:'語彙',q:'「広い」のはんたいのことばはどれですか？',choices:['せまい','ちいさい','みじかい','かるい'],ans:0,exp:'広い⇔せまい'},
+      {unit:'語彙',q:'「速い」のはんたいのことばはどれですか？',choices:['おそい','よわい','ちいさい','かるい'],ans:0,exp:'速い⇔おそい'},
+      {unit:'主語・述語',q:'「空が青い」の主語はどれですか？',choices:['空','が','青い','空が'],ans:0,exp:'主語は「空」'},
+      {unit:'語彙',q:'「集める」のはんたいのことばはどれですか？',choices:['ならべる','ちらかす','ばらばら','くばる'],ans:3,exp:'集める⇔くばる（配る）'},
+      {unit:'主語・述語',q:'「たろうくんが本を読む」の述語はどれですか？',choices:['たろうくんが','本を','読む','本'],ans:2,exp:'述語は「読む」'},
+      {unit:'語彙',q:'「明るい」と意味が近いことばはどれですか？',choices:['暗い','光る','輝く','消える'],ans:2,exp:'明るい≒輝く（かがやく）'},
+      {unit:'主語・述語',q:'主語と述語が正しくつながっているのはどれですか？',choices:['ねこが、かわいい花。','はなが、きれいにさいた。','山が、はしりました。','かぜが、おいしい。'],ans:1,exp:'「花が（主語）さいた（述語）」がただしい'}
+    ],
+    132:[
+      {unit:'時間・順序',passage:'けんじくんは毎朝7時に起きます。学校まで歩いて20分かかります。授業は8時15分に始まります。',q:'遅刻しないためには、何時何分までに家を出ればよいですか？',choices:['7時50分','7時55分','8時00分','8時05分'],ans:1,exp:'8時15分－20分＝7時55分'},
+      {unit:'事実読取り',passage:'はるさんは図書館で本を借りました。家に帰って読み始めると、とても面白くて止まりませんでした。',q:'「止まりませんでした」とはどういう意味ですか？',choices:['本を読むのをやめなかった','本を返しに行かなかった','図書館から出なかった','歩くのをやめなかった'],ans:0,exp:'文の流れから「本を読むのをやめなかった」'},
+      {unit:'時間・順序',passage:'ゆきさんは午後2時に家を出ました。電車で30分、歩いて10分かかります。',q:'目的地に着いたのは何時何分ですか？',choices:['午後2時30分','午後2時40分','午後2時45分','午後3時'],ans:1,exp:'30分＋10分＝40分。2時40分'},
+      {unit:'事実読取り',q:'「山が高い」の「高い」はどんなことを表していますか？',choices:['山の色','山の形','山のたかさ','山の大きさ'],ans:2,exp:'「高い」はたかさを表すことば'},
+      {unit:'時間・順序',passage:'みさきさんは図書館に10時に着きました。1時間20分後に帰りました。',q:'図書館を出たのは何時何分ですか？',choices:['11時10分','11時15分','11時20分','11時25分'],ans:2,exp:'10時＋1時間20分＝11時20分'},
+      {unit:'事実読取り',passage:'お店は午前10時に開店し、午後7時に閉店します。',q:'お店が開いている時間は何時間ですか？',choices:['7時間','8時間','9時間','10時間'],ans:2,exp:'19時－10時＝9時間'},
+      {unit:'時間・順序',passage:'バスは9時、9時30分、10時、10時30分に出ます。',q:'9時15分にバス停についた場合、次のバスは何時ですか？',choices:['9時','9時30分','10時','10時30分'],ans:1,exp:'9時15分の次は9時30分'},
+      {unit:'事実読取り',passage:'ももさんはりんごを5こ（80円）、みかんを3こ（50円）買いました。',q:'払ったお金は全部でいくらですか？',choices:['500円','540円','550円','560円'],ans:2,exp:'80×5＝400円、50×3＝150円、400＋150＝550円'},
+      {unit:'時間・順序',passage:'たろうくんは宿題を3時に始めて4時20分に終わりました。',q:'宿題にかかった時間は何時間何分ですか？',choices:['1時間10分','1時間15分','1時間20分','1時間25分'],ans:2,exp:'4時20分－3時＝1時間20分'},
+      {unit:'事実読取り',passage:'たかしくんは毎日5時に公園に行きます。友だちと1時間遊んで帰ります。',q:'たかしくんが家に帰るのは何時ですか？',choices:['午後5時30分','午後6時','午後6時30分','午後7時'],ans:1,exp:'5時＋1時間＝6時'}
+    ],
+    133:[
+      {unit:'心情読解',passage:'みかさんは、友だちにプレゼントをわたしました。友だちはとてもよろこんで、「ありがとう！」と言いました。みかさんは、じぶんまでうれしい気もちになりました。',q:'みかさんが「うれしい気もちになった」のはなぜですか？',choices:['プレゼントをもらったから','友だちがよろこんでくれたから','「ありがとう」という言葉が好きだから','プレゼントが高かったから'],ans:1,exp:'友だちのよろこびを見て、みかさんもうれしくなった'},
+      {unit:'理由説明',passage:'空が急に暗くなってきました。遠くでかみなりの音がします。たかしくんは急いで洗濯物を取り込みました。',q:'たかしくんが急いだのはなぜですか？',choices:['洗濯物が乾いたから','雨がふりそうだったから','おかあさんに言われたから','遊びに行きたかったから'],ans:1,exp:'空が暗くなりかみなりの音→雨がふりそう'},
+      {unit:'心情読解',passage:'はるかさんは、空を見て「あの雲、綿あめみたいだな」とつぶやきました。するとおかあさんが「きょうのおやつ、何がいい？」と聞きました。はるかさんはちょっとだけ笑いました。',q:'はるかさんが笑ったのはなぜですか？',choices:['おかあさんに会えてうれしかったから','綿あめの雲を見ていたら、おやつのことを聞かれたから','おかあさんが転んだから','学校で楽しいことがあったから'],ans:1,exp:'雲を綿あめと思っていたらおやつのことを聞かれた偶然がおかしかった'},
+      {unit:'理由説明',passage:'えみさんは算数が苦手でした。でも、毎日練習をつづけました。すると、テストで100点をとることができました。',q:'この文章で一番つたえたいことはどれですか？',choices:['算数は難しい','毎日練習すれば力がつく','テストは100点が大切','えみさんは頭がいい'],ans:1,exp:'「でも＋つづけた＋できた」構造から努力の大切さ'},
+      {unit:'心情読解',passage:'たろうくんは大事にしていたおもちゃをなくしてしまいました。部屋中を探しましたが見つかりません。たろうくんはだまってすわっていました。',q:'このときたろうくんはどんな気持ちだと思いますか？',choices:['うれしい','かなしい・しょんぼり','おこっている','わくわくしている'],ans:1,exp:'大事なものをなくして見つからない→悲しい・しょんぼり'},
+      {unit:'理由説明',passage:'たろうくんは友だちと約束していたのに、急に熱が出てしまいました。お母さんに頼んで友だちに電話してもらいました。',q:'お母さんに頼んだのはなぜですか？',choices:['友だちと遊びたくなかったから','行けなくなったことを伝えるため','電話が好きだったから','お母さんが心配していたから'],ans:1,exp:'熱で行けないので、約束を守れないことを伝える必要があった'},
+      {unit:'心情読解',passage:'ゆいさんは発表会でまちがえてしまいました。でも最後まであきらめずに歌いきりました。先生が「よくがんばったね」と言いました。',q:'先生がほめたのはなぜですか？',choices:['まちがえなかったから','声が大きかったから','最後まであきらめずにがんばったから','一番上手だったから'],ans:2,exp:'「あきらめずに歌いきった」ことをほめている'},
+      {unit:'理由説明',passage:'さくらさんは、転んでひざをすりました。泣きたかったけれど、ぐっとがまんしました。',q:'さくらさんががまんしたのはなぜだと思いますか？',choices:['痛くなかったから','泣くのが好きではないから','強くなりたいと思っているから','まわりに人がいなかったから'],ans:2,exp:'「泣きたかったけれどがまん」→強くなりたいという気持ち'},
+      {unit:'心情読解',passage:'けんくんはずっと欲しかったゲームをお誕生日にもらいました。箱を開ける前から、手がふるえていました。',q:'このときけんくんはどんな気持ちですか？',choices:['こわい','かなしい','わくわく・どきどき','おこっている'],ans:2,exp:'ずっと欲しかったものを開ける→わくわく・どきどき'},
+      {unit:'理由説明',passage:'おかあさんは毎朝早起きして、家族のために朝ごはんを作ります。',q:'おかあさんが早起きしているのはなぜですか？',choices:['早起きが好きだから','家族のために朝ごはんを作るため','学校に行くため','仕事が忙しいから'],ans:1,exp:'「家族のために朝ごはんを作る」ために早起きしている'}
+    ],
+    134:[
+      {unit:'説明文',passage:'りんごは秋に実がなります。赤くなったら食べごろです。ビタミンCがたくさん入っていて、体によい果物です。',q:'このぶんしょうは何について説明していますか？',choices:['秋のくだもの全部','りんごのことがら','ビタミンCのはたらき','果物の育て方'],ans:1,exp:'りんごの旬・色・栄養についての説明文'},
+      {unit:'段落',passage:'犬はよく「人間の友だち」と呼ばれます。犬は賢く、人の言葉を理解することができます。また、犬は飼い主のことをとても大切に思っています。',q:'「また」という言葉は何のために使われていますか？',choices:['反対のことを言うため','同じことをくり返すため','新しい情報をつけ加えるため','まとめをするため'],ans:2,exp:'「また」は情報をつけ加えるときに使う接続語'},
+      {unit:'説明文',passage:'チョウは卵→幼虫→さなぎ→成虫の順に成長します。この変化を「変態」といいます。',q:'チョウが幼虫になる前の段階は何ですか？',choices:['さなぎ','成虫','卵','変態'],ans:2,exp:'卵→幼虫　なので幼虫になる前は卵'},
+      {unit:'段落',passage:'水は100度で沸騰します。また、0度で氷になります。このように、水は温度によってすがたがかわります。',q:'「このように」は何のために使われていますか？',choices:['新しい情報をつけ加えるため','前の内容をまとめるため','反対のことを言うため','理由を説明するため'],ans:1,exp:'「このように」は前の内容をまとめるときに使う'},
+      {unit:'説明文',passage:'ひまわりは太陽の方向を向いて育ちます。朝は東を向き、夕方には西を向きます。これは太陽の光を多く受けるためです。',q:'ひまわりが太陽の方向を向く理由はなんですか？',choices:['きれいに見せるため','太陽の光を多く受けるため','暑さをさけるため','水を吸いやすくするため'],ans:1,exp:'「太陽の光を多く受けるため」と本文に書いてある'},
+      {unit:'段落',passage:'運動は体によいです。しかし、やりすぎると体をいためることもあります。だから、適度な運動が大切です。',q:'「しかし」はどんなときに使いますか？',choices:['前の内容をまとめるとき','前の内容と反対のことを言うとき','新しい情報をつけ加えるとき','理由を説明するとき'],ans:1,exp:'「しかし」は逆接の接続語。前と反対のことを言うとき'},
+      {unit:'説明文',passage:'日本には四つの季節があります。春・夏・秋・冬です。それぞれの季節に特ちょうがあります。',q:'「それぞれ」はどういう意味ですか？',choices:['全部まとめて','一つだけ','春夏秋冬のひとつひとつ','どれでも同じ'],ans:2,exp:'「それぞれ」は「ひとつひとつ」「各自」という意味'},
+      {unit:'段落',passage:'本を読むことには多くのよさがあります。まず、知識が増えます。次に、想像力がゆたかになります。そして、言葉をたくさん覚えることができます。',q:'「まず」「次に」「そして」はどんなときに使いますか？',choices:['反対のことを言うとき','順番に説明するとき','理由を言うとき','まとめるとき'],ans:1,exp:'「まず・次に・そして」は順番を示す接続語'},
+      {unit:'説明文',passage:'カメはとてもゆっくり動きます。しかし、水の中では上手に泳ぐことができます。',q:'この文章からカメについてわかることはどれですか？',choices:['陸では遅いが水中では泳げる','陸でも水中でも遅い','水中でしか生きられない','陸ではまったく動けない'],ans:0,exp:'陸でゆっくり、水中では泳げると書いてある'},
+      {unit:'段落',passage:'電車は時刻表通りに動きます。だから、乗る時間をまちがえると目的地に遅れることがあります。',q:'「だから」はどんなときに使いますか？',choices:['反対のことを言うとき','前の内容をまとめるとき','理由から結果を言うとき','情報をつけ加えるとき'],ans:2,exp:'「だから」は順接の接続語。理由から結果を導くとき'}
+    ],
+    135:[
+      {unit:'物語文',passage:'あきらくんは算数のテストで50点をとりました。家に帰ってお母さんに見せると、お母さんはだまったままでした。あきらくんは「次はがんばる」とつぶやきました。',q:'お母さんがだまっていたのはどんな気持ちからだと思いますか？',choices:['うれしかったから','おこっていたから','心配や残念な気持ちから','何も感じなかったから'],ans:2,exp:'低い点数を見て、心配や残念な気持ちでだまっていたと読み取れる'},
+      {unit:'接続語',q:'「雨がふった。（　）、運動会は中止になった。」の（　）はどれですか？',choices:['しかし','そして','だから','または'],ans:2,exp:'雨（理由）→中止（結果）。だから（順接）'},
+      {unit:'物語文',passage:'ひろしくんはなわとびが苦手でした。毎日練習したおかげで、二重跳びができるようになりました。クラスのみんながはく手してくれました。',q:'みんながはく手したのはなぜですか？',choices:['ひろしくんが一番上手だったから','苦手だったのに努力してできるようになったから','先生に言われたから','なわとびが好きだったから'],ans:1,exp:'苦手を克服した努力をみんなが認めてはく手した'},
+      {unit:'接続語',q:'「今日は晴れです。（　）、外で遊べます。」の（　）はどれですか？',choices:['しかし','だから','でも','または'],ans:1,exp:'晴れ→外で遊べる。理由から結果なので「だから」'},
+      {unit:'物語文',passage:'ゆかさんは転校してきたばかりで友だちがいません。休み時間もひとりでいました。ある日、となりのさきさんが「いっしょに遊ぼう」と声をかけてくれました。',q:'ゆかさんはさきさんの言葉を聞いてどんな気持ちになったと思いますか？',choices:['こわい','うれしい・ほっとした','おこった','なんとも思わなかった'],ans:1,exp:'ひとりだったところに声をかけてもらった→うれしい・ほっとした'},
+      {unit:'接続語',q:'「妹は小さい。（　）、力がとても強い。」の（　）はどれですか？',choices:['だから','そして','しかし','または'],ans:2,exp:'小さいのに力が強い→前と反対なので「しかし」（逆接）'},
+      {unit:'物語文',passage:'おじいさんは毎朝庭で花に水をやります。「花が元気でいると、わしも元気になる」といつも言っています。',q:'おじいさんが毎朝花に水をやるのはなぜですか？',choices:['仕事だから','花が好きで、花の元気が自分の元気にもつながるから','お母さんに言われたから','花が枯れると困るから'],ans:1,exp:'「花が元気でいるとわしも元気になる」から'},
+      {unit:'接続語',q:'「かぜをひいた。（　）、学校を休んだ。」の（　）はどれですか？',choices:['しかし','または','だから','でも'],ans:2,exp:'かぜをひいた（理由）→休んだ（結果）。「だから」'},
+      {unit:'物語文',passage:'まことくんはお母さんのお手伝いをしました。食器をあらっていたとき、うっかりコップを割ってしまいました。まことくんはすぐにお母さんのところへ行って「ごめんなさい」と言いました。',q:'まことくんがすぐにお母さんに言いに行ったのはなぜですか？',choices:['こわかったから','正直に謝ることが大切だと思ったから','お母さんに気づかれたくなかったから','コップが大事だったから'],ans:1,exp:'すぐに謝りに行った→正直に伝えることを大切にしている'},
+      {unit:'接続語',q:'「練習をがんばった。（　）、試合に勝てなかった。」の（　）はどれですか？',choices:['だから','しかし','そして','また'],ans:1,exp:'がんばった（けれど）勝てなかった→逆の結果なので「しかし」'}
+    ]
+  }
+};
+
+const STREAK_NEED=3,STREAK_PCT=95;
+let state={mathLv:131,jpLv:131,mathStreak:[],jpStreak:[]};
+let allRecords=[],cur=0,answered=false,sessionResults=[],quizDone=false,questions=[];
+
+function todayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function gradeOf(lv){if(lv<=50)return 1;if(lv<=150)return 2;if(lv<=300)return 3;if(lv<=500)return 4;if(lv<=750)return 5;return 6;}
+
+function loadData(){
+  try{const r=localStorage.getItem('momoka-rec-v4');if(r)allRecords=JSON.parse(r);}catch(e){allRecords=[];}
+  try{const s=localStorage.getItem('momoka-st-v4');if(s)state=JSON.parse(s);}catch(e){}
+  if(!state.mathStreak)state.mathStreak=[];
+  if(!state.jpStreak)state.jpStreak=[];
+}
+function saveData(){
+  try{localStorage.setItem('momoka-rec-v4',JSON.stringify(allRecords));localStorage.setItem('momoka-st-v4',JSON.stringify(state));}catch(e){}
+}
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function getQuestions(){
+  const mqs=QS.math[state.mathLv]||QS.math[131];
+  const jqs=QS.jp[state.jpLv]||QS.jp[131];
+  return[...shuffle(mqs).slice(0,5).map(q=>({...q,type:'math',tag:'算数',lv:state.mathLv})),
+         ...shuffle(jqs).slice(0,5).map(q=>({...q,type:'jp',tag:'国語',lv:state.jpLv}))];
+}
+
+function showTab(t){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+t).classList.add('active');
+  document.getElementById('nav-'+t).classList.add('active');
+  if(t==='level')renderLevel();
+  if(t==='diag')renderDiag();
+  if(t==='hist')renderHist();
+}
+
+function updateHeader(){
+  const sub=`算数 Lv.${state.mathLv}（小${gradeOf(state.mathLv)}年）　国語 Lv.${state.jpLv}（小${gradeOf(state.jpLv)}年）`;
+  document.getElementById('header-sub').textContent=sub;
+}
+
+function renderQuiz(){
+  const area=document.getElementById('quiz-area');
+  if(cur>=questions.length){showResult(area);return;}
+  const q=questions[cur];
+  const pct=Math.round(cur/questions.length*100);
+  const g=gradeOf(q.lv);
+  area.innerHTML=`
+    <div class="pb"><div class="pf" style="width:${pct}%"></div></div>
+    <div class="meta-row">
+      <span style="font-size:12px;color:var(--text2);">問題 ${cur+1} / ${questions.length}</span>
+      <span class="score-badge">正答 ${sessionResults.filter(Boolean).length} / ${cur}</span>
+    </div>
+    <div class="tags">
+      <span class="tag ${q.type==='math'?'tag-m':'tag-j'}">${q.tag} Lv.${q.lv}</span>
+      <span class="tag tag-u">${q.unit}</span>
+      <span class="tag tag-g">小${g}年</span>
+    </div>
+    <div class="card" style="padding:16px;">
+      ${q.passage?`<div class="passage">${q.passage}</div>`:''}
+      <div class="q-text">${q.q}</div>
+      <div class="choices" id="ch"></div>
+      <div id="fb"></div>
+      <div id="nav"></div>
+    </div>
+  `;
+  const cc=document.getElementById('ch');
+  q.choices.forEach((c,i)=>{
+    const b=document.createElement('button');
+    b.className='choice-btn';
+    b.textContent=['A','B','C','D'][i]+'　'+c;
+    b.onclick=()=>doAnswer(i,q);
+    cc.appendChild(b);
+  });
+}
+
+function doAnswer(i,q){
+  if(answered)return;
+  answered=true;
+  const ok=i===q.ans;
+  sessionResults.push(ok);
+  document.querySelectorAll('.choice-btn').forEach((b,idx)=>{
+    b.disabled=true;
+    if(idx===q.ans)b.classList.add(ok?'ok':'rv');
+    else if(idx===i)b.classList.add('ng');
+  });
+  document.getElementById('fb').innerHTML=`<div class="fb ${ok?'ok':'ng'}">${ok?'正解！　':'不正解　正答：'+['A','B','C','D'][q.ans]+'　'}${q.exp}</div>`;
+  const nav=document.getElementById('nav');
+  const nb=document.createElement('button');
+  nb.className='next-btn';
+  nb.style.marginTop='14px';
+  nb.textContent=cur+1<questions.length?'つぎの問題 →':'結果を見る →';
+  nb.onclick=()=>{cur++;answered=false;renderQuiz();window.scrollTo(0,0);};
+  nav.appendChild(nb);
+}
+
+function updateStreak(type,pct){
+  const key=type+'Streak';const today=todayStr();const streak=state[key];
+  if(streak.length&&streak[streak.length-1].date===today)return;
+  if(pct>=STREAK_PCT){
+    if(streak.length){const diff=(new Date(today)-new Date(streak[streak.length-1].date))/86400000;
+      if(diff>1)state[key]=[{date:today,pct}];else state[key]=[...streak,{date:today,pct}];
+    }else state[key]=[{date:today,pct}];
+  }else state[key]=[];
+}
+
+function checkLevelUp(type){
+  const sk=type+'Streak',lk=type+'Lv';
+  if(state[sk].length>=STREAK_NEED){state[lk]=Math.min(999,state[lk]+1);state[sk]=[];return true;}
+  return false;
+}
+
+function showResult(area){
+  quizDone=true;
+  const total=questions.length;
+  const correct=sessionResults.filter(Boolean).length;
+  const pct=Math.round(correct/total*100);
+  const mathQs=questions.filter(q=>q.type==='math');
+  const jpQs=questions.filter(q=>q.type==='jp');
+  const mathC=questions.reduce((a,q,i)=>a+(q.type==='math'&&sessionResults[i]?1:0),0);
+  const jpC=questions.reduce((a,q,i)=>a+(q.type==='jp'&&sessionResults[i]?1:0),0);
+  const mathPct=Math.round(mathC/mathQs.length*100);
+  const jpPct=Math.round(jpC/jpQs.length*100);
+  const unitResults={};
+  questions.forEach((q,i)=>{
+    if(!unitResults[q.unit])unitResults[q.unit]={c:0,t:0,type:q.type};
+    unitResults[q.unit].t++;if(sessionResults[i])unitResults[q.unit].c++;
+  });
+  updateStreak('math',mathPct);updateStreak('jp',jpPct);
+  const mathUp=checkLevelUp('math'),jpUp=checkLevelUp('jp');
+  const rec={date:todayStr(),day:allRecords.length+1,total,correct,pct,mathC,jpC,mathPct,jpPct,mathLv:state.mathLv,jpLv:state.jpLv,unitResults};
+  allRecords.push(rec);saveData();updateHeader();
+  const mkDots=(type)=>Array.from({length:STREAK_NEED},(_,i)=>`<span class="dot ${i<state[type+'Streak'].length?(type==='math'?'m-on':'j-on'):'off'}">${i<state[type+'Streak'].length?'✓':''}</span>`).join('');
+  const lvUpHTML=[mathUp&&{type:'math',lv:state.mathLv},jpUp&&{type:'jp',lv:state.jpLv}].filter(Boolean).map(l=>`
+    <div class="levelup"><div class="levelup-title">${l.type==='math'?'算数':'国語'} レベルアップ！ Lv.${l.lv-1} → Lv.${l.lv}</div>
+    <div class="levelup-sub">${(LEVELS[l.type][l.lv]||{label:'Lv.'+l.lv}).label}　小${gradeOf(l.lv)}年レベル</div></div>`).join('');
+  const comment=pct>=95?'すばらしい！':pct>=80?'よくできました！':pct>=60?'もう少し！':'いっしょに復習しよう';
+  area.innerHTML=`
+    ${lvUpHTML}
+    <div class="card" style="text-align:center;padding:24px 16px;margin-bottom:12px;">
+      <div style="font-size:12px;color:var(--text2);">Day ${rec.day} 結果</div>
+      <div class="result-score">${correct}<span style="font-size:20px;color:var(--text2);font-weight:400;">/ ${total}</span></div>
+      <div class="result-sub">${comment}（正答率 ${pct}%）</div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="bar-row">
+        <div class="bar-label"><span>算数 Lv.${state.mathLv}　小${gradeOf(state.mathLv)}年</span><span>${mathC}/${mathQs.length}　${mathPct}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${mathPct}%;background:var(--green);"></div></div>
+        <div class="dots" style="margin-top:8px;">${mkDots('math')}<span style="font-size:11px;color:var(--text2);margin-left:4px;">${mathPct>=STREAK_PCT?state.mathStreak.length+'/'+STREAK_NEED+'日連続':'連続リセット'}</span></div>
+      </div>
+      <div class="bar-row" style="margin-top:14px;margin-bottom:0;">
+        <div class="bar-label"><span>国語 Lv.${state.jpLv}　小${gradeOf(state.jpLv)}年</span><span>${jpC}/${jpQs.length}　${jpPct}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${jpPct}%;background:var(--blue);"></div></div>
+        <div class="dots" style="margin-top:8px;">${mkDots('jp')}<span style="font-size:11px;color:var(--text2);margin-left:4px;">${jpPct>=STREAK_PCT?state.jpStreak.length+'/'+STREAK_NEED+'日連続':'連続リセット'}</span></div>
+      </div>
+    </div>
+    <button class="action-btn primary" onclick="startNewSet()">もう1セットやる！</button>
+    <button class="action-btn" onclick="showTab('diag')">診断を見る</button>
+  `;
+}
+
+function startNewSet(){
+  cur=0;answered=false;sessionResults=[];quizDone=false;
+  questions=getQuestions();
+  window.scrollTo(0,0);
+  renderQuiz();
+}
+
+function renderLevel(){
+  const mkDots=(type)=>Array.from({length:STREAK_NEED},(_,i)=>`<span class="dot ${i<state[type+'Streak'].length?(type==='math'?'m-on':'j-on'):'off'}">${i<state[type+'Streak'].length?'✓':''}</span>`).join('');
+  const mkCard=(type)=>{
+    const lv=state[type+'Lv'];const def=LEVELS[type][lv]||{label:'Lv.'+lv,units:[],desc:''};
+    const next=LEVELS[type][lv+1];const g=gradeOf(lv);
+    const chips=(def.units||[]).map(u=>`<span class="unit-chip ${type==='jp'?'j':''}">${u}</span>`).join('');
+    return`<div class="lv-card">
+      <div class="lv-top">
+        <div class="lv-circle ${type==='math'?'m':'j'}">
+          <span class="lv-circle-label">${type==='math'?'算数':'国語'}</span>
+          <span class="lv-circle-num">${lv}</span>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:700;color:var(--text);">Lv.${lv} / 999</div>
+          <div style="font-size:13px;color:var(--text2);">${def.label}</div>
+          <div style="font-size:11px;color:var(--text2);">小${g}年レベル</div>
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">${chips}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">昇級まで：95%以上を3日連続</div>
+      <div class="dots">${mkDots(type)}<span style="font-size:12px;color:var(--text2);margin-left:6px;">${state[type+'Streak'].length} / ${STREAK_NEED} 日達成</span></div>
+      ${next?`<div style="font-size:12px;color:var(--text2);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">次 → Lv.${lv+1}「${next.label}」</div>`:''}
+    </div>`;
+  };
+  document.getElementById('level-area').innerHTML=`
+    <div class="sec-title">現在のレベル</div>
+    ${mkCard('math')}${mkCard('jp')}
+    <div class="card" style="font-size:12px;color:var(--text2);line-height:2;">
+      小1 Lv.1〜50 / 小2 Lv.51〜150<br>
+      小3 Lv.151〜300 / 小4 Lv.301〜500<br>
+      小5 Lv.501〜750 / 小6 Lv.751〜999<br>
+      昇級：95%以上を3日連続で達成
+    </div>`;
+}
+
+function gradeStr(pct){
+  if(pct>=95)return'<span class="grade-badge g-s">S</span>';
+  if(pct>=85)return'<span class="grade-badge g-a">A</span>';
+  if(pct>=70)return'<span class="grade-badge g-b">B</span>';
+  if(pct>=55)return'<span class="grade-badge g-c">C</span>';
+  return'<span class="grade-badge g-d">D</span>';
+}
+
+function renderDiag(){
+  const area=document.getElementById('diag-area');
+  if(!allRecords.length){area.innerHTML='<div class="empty">まだ記録がないよ。<br>問題をといてみよう！</div>';return;}
+  const total=allRecords.length;
+  const avg=Math.round(allRecords.reduce((a,r)=>a+r.pct,0)/total);
+  const mathAvg=Math.round(allRecords.reduce((a,r)=>a+r.mathPct,0)/total);
+  const jpAvg=Math.round(allRecords.reduce((a,r)=>a+r.jpPct,0)/total);
+  const streak95=allRecords.filter(r=>r.pct>=95).length;
+  const recent5=allRecords.slice(-5);
+  const recentAvg=Math.round(recent5.reduce((a,r)=>a+r.pct,0)/recent5.length);
+  const unitMap={};
+  allRecords.forEach(r=>{if(!r.unitResults)return;Object.entries(r.unitResults).forEach(([u,v])=>{if(!unitMap[u])unitMap[u]={c:0,t:0,type:v.type};unitMap[u].c+=v.c;unitMap[u].t+=v.t;});});
+  const unitArr=Object.entries(unitMap).map(([u,v])=>({u,pct:Math.round(v.c/v.t*100),type:v.type})).sort((a,b)=>a.pct-b.pct);
+  const weak=unitArr.slice(0,3);const strong=unitArr.slice(-3).reverse();
+  const mkRows=arr=>arr.map(w=>`<div class="diag-row">
+    <span class="diag-label">${w.u}</span>
+    <div class="diag-bar"><div class="diag-fill" style="width:${w.pct}%;background:${w.type==='math'?'var(--green)':'var(--blue)'};"></div></div>
+    <span class="diag-pct">${w.pct}%</span>${gradeStr(w.pct)}</div>`).join('');
+  const trend=recentAvg>=avg?'上昇中':'要注意';
+  const trendC=recentAvg>=avg?'var(--green-dark)':'var(--red)';
+  area.innerHTML=`
+    <div class="sec-title">学習診断</div>
+    <div class="stat-grid">
+      <div class="stat-item"><div class="stat-num">${total}</div><div class="stat-label">学習日数</div></div>
+      <div class="stat-item"><div class="stat-num">${avg}%</div><div class="stat-label">平均正答率</div></div>
+      <div class="stat-item"><div class="stat-num">${streak95}</div><div class="stat-label">95%達成日</div></div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="sec-title" style="margin-bottom:12px;">科目別　平均正答率</div>
+      <div class="diag-row"><span class="diag-label">算数</span><div class="diag-bar"><div class="diag-fill" style="width:${mathAvg}%;background:var(--green);"></div></div><span class="diag-pct">${mathAvg}%</span>${gradeStr(mathAvg)}</div>
+      <div class="diag-row"><span class="diag-label">国語</span><div class="diag-bar"><div class="diag-fill" style="width:${jpAvg}%;background:var(--blue);"></div></div><span class="diag-pct">${jpAvg}%</span>${gradeStr(jpAvg)}</div>
+    </div>
+    ${weak.length?`<div class="card" style="margin-bottom:12px;"><div class="sec-title" style="margin-bottom:12px;">苦手単元　TOP3</div>${mkRows(weak)}</div>`:''}
+    ${strong.length?`<div class="card" style="margin-bottom:12px;"><div class="sec-title" style="margin-bottom:12px;">得意単元　TOP3</div>${mkRows(strong)}</div>`:''}
+    <div class="card" style="font-size:13px;line-height:1.8;">
+      <span style="font-weight:700;">直近5回の傾向：</span>
+      <span style="color:${trendC};font-weight:700;">${trend}</span><br>
+      <span style="color:var(--text2);">直近平均 ${recentAvg}% / 全体平均 ${avg}%</span>
+    </div>`;
+}
+
+function renderHist(){
+  const area=document.getElementById('hist-area');
+  if(!allRecords.length){area.innerHTML='<div class="empty">まだ記録がないよ。<br>問題をといてみよう！</div>';return;}
+  const rows=[...allRecords].reverse().map(r=>{
+    const c=r.pct>=95?'var(--green)':r.pct>=80?'var(--amber)':'var(--red)';
+    const badge=r.pct>=95?`<span class="tag tag-m" style="font-size:10px;padding:2px 6px;">95%+</span>`:'';
+    return`<div class="hist-row">
+      <span style="font-weight:700;min-width:52px;font-size:13px;">Day ${r.day}</span>
+      <span style="font-size:11px;color:var(--text2);min-width:66px;">${r.date}</span>
+      <span style="font-size:11px;color:var(--green-dark);min-width:34px;">M${r.mathLv}</span>
+      <span style="font-size:11px;color:var(--blue);min-width:34px;">J${r.jpLv}</span>
+      <div style="flex:1;height:6px;background:var(--gray-light);border-radius:3px;overflow:hidden;"><div style="height:100%;border-radius:3px;width:${r.pct}%;background:${c};"></div></div>
+      <span style="font-size:12px;font-weight:700;min-width:36px;text-align:right;color:${c};">${r.pct}%</span>
+      ${badge}
+    </div>`;
+  }).join('');
+  area.innerHTML=`<div class="sec-title">全${allRecords.length}回の記録</div><div class="card">${rows}</div>`;
+}
+
+loadData();
+questions=getQuestions();
+updateHeader();
+renderQuiz();
+</script>
+</body>
+</html>
